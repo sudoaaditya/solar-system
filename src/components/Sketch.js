@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 
+//Effect
+import { RenderPass, EffectComposer, UnrealBloomPass, OutputPass, GLTFLoader } from 'three/examples/jsm/Addons.js';
+
 import GUI from 'lil-gui';
 
 // shaders
@@ -45,22 +48,28 @@ class Sketch {
         this.renderer.setSize(this.sizes.width, this.sizes.height);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setClearColor(0x000000, 1);
-        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        // this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        this.renderer.toneMapping = THREE.ReinhardToneMapping;
+        this.renderer.toneMappingExposure = 2;
 
         this.clock = new THREE.Clock();
+
+        this.composer = null;
 
         // camera & resize
         this.setupCamera();
         this.setupResize();
 
-        // wramup calls
-        this.resize();
-        this.render();
-
         // world setup
         this.settings();
         this.loadTextures();
+        this.addLights();
         this.addContents();
+        this.setupComposer();
+
+        // wramup calls
+        this.resize();
+        this.render();
 
         // start animation loop
         this.start();
@@ -68,7 +77,31 @@ class Sketch {
 
     settings = () => {
         this.settings = {
+            threshold: 0,
+            strength: 1, 
+            radius: 0,
+            exposure: 1
         };
+
+        const bloomFolder = this.gui.addFolder("Bloom Settings")
+
+        bloomFolder.add(this.settings ,"threshold", 0.0, 1.0, 0.1).onChange((value) => {
+            this.bloomPass.threshold = Number(value);
+        })
+
+        bloomFolder.add(this.settings ,"strength", 0.0, 3.0, 0.1).onChange((value) => {
+            this.bloomPass.strength = Number(value);
+        })
+
+        bloomFolder.add(this.settings ,"radius", 0.0, 1.0, 0.01).onChange((value) => {
+            this.bloomPass.radius = Number(value);
+        })
+
+        const toneMappingFolder = this.gui.addFolder( 'tone mapping' );
+
+        toneMappingFolder.add( this.settings, 'exposure', 0.1, 2 ).onChange( ( value ) => {
+            this.renderer.toneMappingExposure = Math.pow( value, 4.0 );
+        } );
     }
 
     changeTexture = (index) => {
@@ -106,6 +139,7 @@ class Sketch {
         this.camera.updateProjectionMatrix();
 
         this.renderer.setSize(this.sizes.width, this.sizes.height)
+        this.composer.setSize(this.sizes.width, this.sizes.height)
     }
 
     start = () => {
@@ -118,10 +152,31 @@ class Sketch {
         cancelAnimationFrame(this.frameId);
     }
 
+    addLights = () => {
+        this.scene.add(new THREE.AmbientLight(0xcccccc));
+
+        const pointLight = new THREE.PointLight(0xffffff, 100);
+        this.camera.add(pointLight);
+    }
+
+    getSunColor = (bNess) => {
+        bNess *= 0.25;
+
+        console.log(bNess)
+        const colorVector = (new THREE.Vector3(bNess, bNess*bNess, bNess*bNess*bNess));
+        colorVector.divideScalar(0.25)
+        colorVector.multiplyScalar(0.8)
+
+        console.log(colorVector);
+        
+
+        return new THREE.Color().setFromVector3(colorVector)
+    }
+
     addContents = () => {
         // render base scene data!
         // add plane with shader material
-        const geometry = new THREE.PlaneGeometry(2, 2, 1, 1);
+        /* const geometry = new THREE.PlaneGeometry(2, 2, 1, 1);
         const material = new THREE.ShaderMaterial({
             vertexShader,
             fragmentShader,
@@ -132,7 +187,41 @@ class Sketch {
         });
 
         const plane = new THREE.Mesh(geometry, material);
-        this.scene.add(plane);
+        this.scene.add(plane); */
+
+        const geo = new THREE.SphereGeometry(1, 32, 32);
+        const color = this.getSunColor(2);
+        console.log(color)
+        const material = new THREE.MeshStandardMaterial({ 
+            color,
+            map: new THREE.TextureLoader().load('/textures/sun.jpg')
+        });
+        const sphere = new THREE.Mesh(geo, material);
+        this.scene.add(sphere);
+
+        // const loader = new GLTFLoader();
+        // const gltf = await loader.loadAsync('/models/PrimaryIonDrive.glb');
+        // this.scene.add(gltf.scene)
+    }
+
+    setupComposer = () => {
+        this.composer = new EffectComposer(this.renderer);
+
+        const renderPass = new RenderPass(this.scene, this.camera);
+
+        this.bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(this.sizes.width, this.sizes.height),
+            this.settings.strength,
+            this.settings.radius,
+            this.settings.threshold
+        );
+
+        const outputPass = new OutputPass();
+
+        this.composer.addPass(renderPass);
+        this.composer.addPass(this.bloomPass);
+        this.composer.addPass(outputPass);
+
     }
 
     update = () => {
@@ -146,9 +235,14 @@ class Sketch {
     }
 
     render = () => {
-        let { renderer, scene, camera, } = this;
+        /* let { renderer, scene, camera, } = this;
         if (renderer) {
             renderer.render(scene, camera);
+        } */
+
+        let { composer } = this;
+        if(composer) {
+            composer.render();
         }
     }
 }
