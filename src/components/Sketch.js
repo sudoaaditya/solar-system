@@ -194,7 +194,7 @@ class Sketch {
         console.log(color)
         const material = new THREE.MeshStandardMaterial({ 
             color,
-            map: new THREE.TextureLoader().load('/textures/sun.jpg')
+            map: new THREE.TextureLoader().load('/textures/planets/sun.jpg')
         });
         const sphere = new THREE.Mesh(geo, material);
         this.scene.add(sphere);
