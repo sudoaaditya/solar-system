@@ -9,6 +9,7 @@ import GUI from 'lil-gui';
 // shaders
 import vertexShader from './shaders/vertex.glsl';
 import fragmentShader from './shaders/fragment.glsl';
+import StarField from './effects/StarField';
 
 class Sketch {
 
@@ -55,6 +56,7 @@ class Sketch {
         this.clock = new THREE.Clock();
 
         this.composer = null;
+        this.starField = null;
 
         // camera & resize
         this.setupCamera();
@@ -110,6 +112,14 @@ class Sketch {
 
     loadTextures = () => {
 
+        const starTexs = [
+            '/textures/stars/3.png',
+            '/textures/stars/4.png',
+            '/textures/stars/5.png',
+            '/textures/stars/6.png',
+        ];
+
+        this.starTextures = starTexs.map((path) => this.texLoader.load(path));
     }
 
     setupCamera = () => {
@@ -117,8 +127,8 @@ class Sketch {
         this.camera = new THREE.PerspectiveCamera(
             35,
             (this.sizes.width / this.sizes.height),
-            0.1,
-            1000
+            0.01,
+            10000
         );
 
         this.camera.position.set(0, 0, 4);
@@ -198,6 +208,15 @@ class Sketch {
         });
         const sphere = new THREE.Mesh(geo, material);
         this.scene.add(sphere);
+
+        // render base scene data!
+        this.starField = new StarField({
+            starNumbers: 1000,
+            starTexture: this.starTextures[3],
+            starSize: 5,
+            radiusOffset: 50
+        });
+        this.scene.add(this.starField.stars);
 
         // const loader = new GLTFLoader();
         // const gltf = await loader.loadAsync('/models/PrimaryIonDrive.glb');
