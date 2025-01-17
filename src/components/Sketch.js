@@ -51,7 +51,7 @@ class Sketch {
         this.renderer.setClearColor(0x000000, 1);
         // this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.renderer.toneMapping = THREE.ReinhardToneMapping;
-        this.renderer.toneMappingExposure = 2;
+        this.renderer.toneMappingExposure = 4;
 
         this.clock = new THREE.Clock();
 
@@ -177,9 +177,6 @@ class Sketch {
         colorVector.divideScalar(0.25)
         colorVector.multiplyScalar(0.8)
 
-        console.log(colorVector);
-        
-
         return new THREE.Color().setFromVector3(colorVector)
     }
 
@@ -201,12 +198,12 @@ class Sketch {
 
         const geo = new THREE.SphereGeometry(1, 32, 32);
         const color = this.getSunColor(2);
-        console.log(color)
         const material = new THREE.MeshStandardMaterial({ 
             color,
             map: new THREE.TextureLoader().load('/textures/planets/sun.jpg')
         });
         const sphere = new THREE.Mesh(geo, material);
+        sphere.layers.set(0);
         this.scene.add(sphere);
 
         // render base scene data!
@@ -214,8 +211,9 @@ class Sketch {
             starNumbers: 1000,
             starTexture: this.starTextures[3],
             starSize: 5,
-            radiusOffset: 50
+            radiusOffset: 80
         });
+        this.starField.stars.layers.set(1);
         this.scene.add(this.starField.stars);
 
         // const loader = new GLTFLoader();
@@ -225,7 +223,9 @@ class Sketch {
 
     setupComposer = () => {
         this.composer = new EffectComposer(this.renderer);
+        this.composer.setSize(this.sizes.width, this.sizes.height);
 
+        this.camera.layers.enable(0);
         const renderPass = new RenderPass(this.scene, this.camera);
 
         this.bloomPass = new UnrealBloomPass(
@@ -259,9 +259,19 @@ class Sketch {
             renderer.render(scene, camera);
         } */
 
-        let { composer } = this;
-        if(composer) {
+        let { composer, renderer, scene, camera } = this;
+        if(composer && renderer) {
+
+            renderer.clear();
+
+            camera.layers.enable(0);
             composer.render();
+
+
+            renderer.clearDepth();
+            camera.layers.enable(1);
+            // renderer.render(scene, camera);
+
         }
     }
 }
