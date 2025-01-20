@@ -9,7 +9,7 @@ import GUI from 'lil-gui';
 // shaders
 import vertexShader from './shaders/vertex.glsl';
 import fragmentShader from './shaders/fragment.glsl';
-import StarField from './effects/StarField';
+import StarField from './effects/starfield/StarField';
 
 class Sketch {
 
@@ -125,7 +125,7 @@ class Sketch {
     setupCamera = () => {
 
         this.camera = new THREE.PerspectiveCamera(
-            35,
+            70,
             (this.sizes.width / this.sizes.height),
             0.01,
             10000

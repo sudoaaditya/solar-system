@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-import vertexShader from '../shaders/starfield/vertex.glsl';
-import fragmentShader from '../shaders/starfield/fragment.glsl';
+import vertexShader from './shaders//vertex.glsl';
+import fragmentShader from './shaders//fragment.glsl';
 
 class StarField {
     constructor({ starNumbers = 500, starTexture = null, starSize = 10, radiusOffset = 25 }) {
