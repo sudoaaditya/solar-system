@@ -2,13 +2,15 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 
 //Effect
-import { RenderPass, EffectComposer, UnrealBloomPass, OutputPass, GLTFLoader } from 'three/examples/jsm/Addons.js';
+import { RenderPass, EffectComposer, UnrealBloomPass, OutputPass, ShaderPass, FXAAShader } from 'three/examples/jsm/Addons.js';
 
 import GUI from 'lil-gui';
 
 // shaders
-import vertexShader from './shaders/vertex.glsl';
-import fragmentShader from './shaders/fragment.glsl';
+// import vertexShader from './shaders/vertex.glsl';
+// import fragmentShader from './shaders/fragment.glsl';
+
+// components
 import StarField from './effects/starfield/StarField';
 
 class Sketch {
@@ -80,30 +82,30 @@ class Sketch {
     settings = () => {
         this.settings = {
             threshold: 0,
-            strength: 1, 
+            strength: 1,
             radius: 0,
             exposure: 1
         };
 
         const bloomFolder = this.gui.addFolder("Bloom Settings")
 
-        bloomFolder.add(this.settings ,"threshold", 0.0, 1.0, 0.1).onChange((value) => {
+        bloomFolder.add(this.settings, "threshold", 0.0, 1.0, 0.1).onChange((value) => {
             this.bloomPass.threshold = Number(value);
         })
 
-        bloomFolder.add(this.settings ,"strength", 0.0, 3.0, 0.1).onChange((value) => {
+        bloomFolder.add(this.settings, "strength", 0.0, 3.0, 0.1).onChange((value) => {
             this.bloomPass.strength = Number(value);
         })
 
-        bloomFolder.add(this.settings ,"radius", 0.0, 1.0, 0.01).onChange((value) => {
+        bloomFolder.add(this.settings, "radius", 0.0, 1.0, 0.01).onChange((value) => {
             this.bloomPass.radius = Number(value);
         })
 
-        const toneMappingFolder = this.gui.addFolder( 'tone mapping' );
+        const toneMappingFolder = this.gui.addFolder('tone mapping');
 
-        toneMappingFolder.add( this.settings, 'exposure', 0.1, 2 ).onChange( ( value ) => {
-            this.renderer.toneMappingExposure = Math.pow( value, 4.0 );
-        } );
+        toneMappingFolder.add(this.settings, 'exposure', 0.1, 2).onChange((value) => {
+            this.renderer.toneMappingExposure = Math.pow(value, 4.0);
+        });
     }
 
     changeTexture = (index) => {
@@ -173,7 +175,7 @@ class Sketch {
         bNess *= 0.25;
 
         console.log(bNess)
-        const colorVector = (new THREE.Vector3(bNess, bNess*bNess, bNess*bNess*bNess));
+        const colorVector = (new THREE.Vector3(bNess, bNess * bNess, bNess * bNess * bNess));
         colorVector.divideScalar(0.25)
         colorVector.multiplyScalar(0.8)
 
@@ -196,16 +198,6 @@ class Sketch {
         const plane = new THREE.Mesh(geometry, material);
         this.scene.add(plane); */
 
-        const geo = new THREE.SphereGeometry(1, 32, 32);
-        const color = this.getSunColor(2);
-        const material = new THREE.MeshStandardMaterial({ 
-            color,
-            map: new THREE.TextureLoader().load('/textures/planets/sun.jpg')
-        });
-        const sphere = new THREE.Mesh(geo, material);
-        sphere.layers.set(0);
-        this.scene.add(sphere);
-
         // render base scene data!
         this.starField = new StarField({
             starNumbers: 1000,
@@ -213,8 +205,21 @@ class Sketch {
             starSize: 5,
             radiusOffset: 80
         });
-        this.starField.stars.layers.set(1);
         this.scene.add(this.starField.stars);
+
+        const geo = new THREE.SphereGeometry(1, 32, 32);
+        const color = this.getSunColor(2);
+        const material = new THREE.MeshStandardMaterial({
+            color,
+            map: new THREE.TextureLoader().load('/textures/planets/sun.jpg')
+        });
+        const sphere = new THREE.Mesh(geo, material);
+        this.scene.add(sphere);
+
+        this.renderer.autoClear = false;
+        this.camera.layers.enable(1);
+        sphere.layers.set(1);
+        this.starField.stars.layers.set(0);
 
         // const loader = new GLTFLoader();
         // const gltf = await loader.loadAsync('/models/PrimaryIonDrive.glb');
@@ -225,8 +230,10 @@ class Sketch {
         this.composer = new EffectComposer(this.renderer);
         this.composer.setSize(this.sizes.width, this.sizes.height);
 
-        this.camera.layers.enable(0);
         const renderPass = new RenderPass(this.scene, this.camera);
+
+        const effectFXAA = new ShaderPass(FXAAShader);
+        effectFXAA.uniforms.resolution.value.set(1 / window.innerWidth, 1 / window.innerHeight);
 
         this.bloomPass = new UnrealBloomPass(
             new THREE.Vector2(this.sizes.width, this.sizes.height),
@@ -238,9 +245,12 @@ class Sketch {
         const outputPass = new OutputPass();
 
         this.composer.addPass(renderPass);
+        this.composer.addPass(effectFXAA);
         this.composer.addPass(this.bloomPass);
         this.composer.addPass(outputPass);
 
+        this.renderer.gammaInput = true;
+        this.renderer.gammaOutput = true;
     }
 
     update = () => {
@@ -254,23 +264,18 @@ class Sketch {
     }
 
     render = () => {
-        /* let { renderer, scene, camera, } = this;
-        if (renderer) {
-            renderer.render(scene, camera);
-        } */
-
         let { composer, renderer, scene, camera } = this;
-        if(composer && renderer) {
+        if (composer && renderer) {
 
             renderer.clear();
 
-            camera.layers.enable(0);
+            camera.layers.set(1);
             composer.render();
 
 
             renderer.clearDepth();
-            camera.layers.enable(1);
-            // renderer.render(scene, camera);
+            camera.layers.set(0);
+            renderer.render(scene, camera);
 
         }
     }
