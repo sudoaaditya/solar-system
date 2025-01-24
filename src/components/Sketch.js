@@ -115,9 +115,6 @@ class Sketch {
     loadTextures = () => {
 
         const starTexs = [
-            '/textures/stars/3.png',
-            '/textures/stars/4.png',
-            '/textures/stars/5.png',
             '/textures/stars/6.png',
         ];
 
@@ -201,7 +198,7 @@ class Sketch {
         // render base scene data!
         this.starField = new StarField({
             starNumbers: 1000,
-            starTexture: this.starTextures[3],
+            starTexture: this.starTextures[0],
             starSize: 5,
             radiusOffset: 80
         });
