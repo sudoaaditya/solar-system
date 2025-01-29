@@ -1,14 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 
-//Effect
-import { RenderPass, EffectComposer, UnrealBloomPass, OutputPass, ShaderPass, FXAAShader, GLTFLoader } from 'three/examples/jsm/Addons.js';
-
-import GUI from 'lil-gui';
 
 // components
 import StarField from './effects/StarField';
-
+import { Postprocessing } from './classes/Postprocessing';
 class Sketch {
 
     constructor(container) {
@@ -23,7 +19,11 @@ class Sketch {
         this.sizes = {};
         this.frameId = null;
         this.clock = null;
-        this.gui = new GUI();
+
+        this.layers = {
+            BLOOM: 1,
+            DEFAULT: 0
+        }
 
         this.starField = null;
 
@@ -58,10 +58,9 @@ class Sketch {
         this.setupResize();
 
         // world setup
-        this.settings();
         this.addLights();
-        this.addContents();
         this.setupComposer();
+        this.addContents();
 
         // wramup calls
         this.resize();
@@ -69,35 +68,6 @@ class Sketch {
 
         // start animation loop
         this.start();
-    }
-
-    settings = () => {
-        this.params = {
-            threshold: 0,
-            strength: 1,
-            radius: 0,
-            exposure: 1
-        };
-
-        const bloomFolder = this.gui.addFolder("Bloom Settings")
-
-        bloomFolder.add(this.params, "threshold", 0.0, 1.0, 0.1).onChange((value) => {
-            this.bloomPass.threshold = Number(value);
-        })
-
-        bloomFolder.add(this.params, "strength", 0.0, 3.0, 0.1).onChange((value) => {
-            this.bloomPass.strength = Number(value);
-        })
-
-        bloomFolder.add(this.params, "radius", 0.0, 1.0, 0.01).onChange((value) => {
-            this.bloomPass.radius = Number(value);
-        })
-
-        const toneMappingFolder = this.gui.addFolder('tone mapping');
-
-        toneMappingFolder.add(this.params, 'exposure', 0.1, 2).onChange((value) => {
-            this.renderer.toneMappingExposure = Math.pow(value, 4.0);
-        });
     }
 
     changeTexture = (index) => {
@@ -131,6 +101,8 @@ class Sketch {
         this.camera.updateProjectionMatrix();
 
         this.renderer.setSize(this.sizes.width, this.sizes.height);
+
+        this.postprocessing?.resize(this.sizes);
     }
 
     start = () => {
@@ -172,16 +144,25 @@ class Sketch {
         this.scene.add(this.starField.stars);
 
         const geo = new THREE.SphereGeometry(1, 32, 32);
-        const color = this.getSunColor(2);
+        const color = this.getSunColor(3);
         const material = new THREE.MeshStandardMaterial({
             color,
             map: new THREE.TextureLoader().load('/textures/planets/sun.jpg')
         });
         const sphere = new THREE.Mesh(geo, material);
+        sphere.userData["isObject"] = true;
+        sphere.layers.enable(this.layers.BLOOM);
         this.scene.add(sphere);
     }
 
     setupComposer = () => {
+        this.postprocessing = new Postprocessing(
+            this.renderer,
+            this.camera,
+            this.scene,
+            this.sizes,
+            this.layers
+        );
     }
 
     update = () => {
@@ -195,14 +176,7 @@ class Sketch {
     }
 
     render = () => {
-        let {renderer, scene, camera } = this;
-        if (renderer) {
-
-            renderer.clear();
-
-            renderer.render(scene, camera);
-
-        }
+        this.postprocessing.render();
     }
 }
 

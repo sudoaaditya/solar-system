@@ -87,6 +87,7 @@ class StarField {
         });
 
         this.stars = new THREE.Points(this.starsGeometry, this.starsMaterial);
+        this.stars.userData["isObject"] = true;
     }
 
     updateStarMap = (idx) => {
