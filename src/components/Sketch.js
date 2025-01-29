@@ -6,12 +6,8 @@ import { RenderPass, EffectComposer, UnrealBloomPass, OutputPass, ShaderPass, FX
 
 import GUI from 'lil-gui';
 
-// shaders
-// import vertexShader from './shaders/vertex.glsl';
-// import fragmentShader from './shaders/fragment.glsl';
-
 // components
-import StarField from './effects/starfield/StarField';
+import StarField from './effects/StarField';
 
 class Sketch {
 
@@ -29,15 +25,12 @@ class Sketch {
         this.clock = null;
         this.gui = new GUI();
 
-        this.textures = [];
         this.starField = null;
 
         this.initialize();
     }
 
     initialize = () => {
-
-        this.texLoader = new THREE.TextureLoader();
 
         this.scene = new THREE.Scene();
 
@@ -51,9 +44,9 @@ class Sketch {
         this.renderer.setSize(this.sizes.width, this.sizes.height);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setClearColor(0x000000, 1);
-        // this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.renderer.toneMapping = THREE.ReinhardToneMapping;
-        this.renderer.toneMappingExposure = 4;
+        this.renderer.toneMappingExposure = Math.pow(4.0, 1.0);
 
         this.clock = new THREE.Clock();
 
@@ -66,14 +59,13 @@ class Sketch {
 
         // world setup
         this.settings();
-        this.loadTextures();
         this.addLights();
         this.addContents();
         this.setupComposer();
 
         // wramup calls
         this.resize();
-        // this.render();
+        this.render();
 
         // start animation loop
         this.start();
@@ -112,15 +104,6 @@ class Sketch {
         this.starField.updateStarMap(this.textures[index]);
     }
 
-    loadTextures = () => {
-
-        const starTexs = [
-            '/textures/stars/6.png',
-        ];
-
-        this.starTextures = starTexs.map((path) => this.texLoader.load(path));
-    }
-
     setupCamera = () => {
 
         this.camera = new THREE.PerspectiveCamera(
@@ -147,8 +130,7 @@ class Sketch {
         this.camera.aspect = this.sizes.width / this.sizes.height;
         this.camera.updateProjectionMatrix();
 
-        this.renderer.setSize(this.sizes.width, this.sizes.height)
-        this.composer.setSize(this.sizes.width, this.sizes.height)
+        this.renderer.setSize(this.sizes.width, this.sizes.height);
     }
 
     start = () => {
@@ -183,7 +165,7 @@ class Sketch {
         // render base scene data!
         this.starField = new StarField({
             starNumbers: 1000,
-            starTexture: this.starTextures[0],
+            starTexIdx: 3,
             starSize: 15,
             radiusOffset: 80
         });
@@ -197,46 +179,9 @@ class Sketch {
         });
         const sphere = new THREE.Mesh(geo, material);
         this.scene.add(sphere);
-
-        // const loader = new GLTFLoader();
-        // const gltf = await loader.loadAsync('/models/PrimaryIonDrive.glb');
-        // this.scene.add(gltf.scene);
-
-        this.renderer.autoClear = false;
-        this.camera.layers.enable(1);
-        sphere.layers.set(1);
-        // gltf.scene.layers.set(1)
-        this.starField.stars.layers.set(0);
     }
 
     setupComposer = () => {
-
-        const renderPass = new RenderPass(this.scene, this.camera);
-
-        const effectFXAA = new ShaderPass(FXAAShader);
-        effectFXAA.uniforms.resolution.value.set(1 / window.innerWidth, 1 / window.innerHeight);
-
-        this.bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(this.sizes.width, this.sizes.height),
-            1.5, 0.4, 0.85
-        );
-        this.bloomPass.strength = this.params.strength
-        this.bloomPass.radius = this.params.radius
-        this.bloomPass.threshold = this.params.threshold
-        this.bloomPass.renderToScreen = true;
-
-        // const outputPass = new OutputPass();
-
-        this.composer = new EffectComposer(this.renderer);
-        this.composer.setSize(this.sizes.width, this.sizes.height);
-
-        this.composer.addPass(renderPass);
-        this.composer.addPass(effectFXAA);
-        this.composer.addPass(this.bloomPass);
-        // this.composer.addPass(outputPass);
-
-        this.renderer.gammaInput = true;
-        this.renderer.gammaOutput = true;
     }
 
     update = () => {
@@ -250,16 +195,11 @@ class Sketch {
     }
 
     render = () => {
-        let { composer, renderer, scene, camera } = this;
-        if (composer && renderer) {
+        let {renderer, scene, camera } = this;
+        if (renderer) {
 
             renderer.clear();
 
-            this.camera.layers.set(1);
-            composer.render();
-
-            renderer.clearDepth();
-            this.camera.layers.set(0);
             renderer.render(scene, camera);
 
         }
