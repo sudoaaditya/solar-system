@@ -169,6 +169,7 @@ class Sketch {
         this.elpasedTime = this.clock.getElapsedTime();
 
         this.controls.update();
+        this.starField.update(this.elpasedTime);
 
         this.render();
 

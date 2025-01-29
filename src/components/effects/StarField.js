@@ -55,6 +55,7 @@ class StarField {
         let positions = [];
         let vertices = [];
         // let sizes = [];
+        let randoms = [];
         let col;
 
         for (let i = 0; i < this.starNumbers; i++) {
@@ -66,11 +67,14 @@ class StarField {
 
             vertices.push(position.x, position.y, position.z);
             colors.push(col.r, col.g, col.b);
+
+            randoms.push(Math.random());
             // sizes.push(size);
         }
 
         this.starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
         this.starsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        this.starsGeometry.setAttribute('aRandom', new THREE.Float32BufferAttribute(randoms, 1));
         // this.starsGeometry.setAttribute('aSize', new THREE.Float32BufferAttribute(sizes, 1));
 
         this.starsMaterial = new THREE.ShaderMaterial({
