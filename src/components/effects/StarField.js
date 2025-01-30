@@ -121,6 +121,7 @@ class StarField {
 
     update = (time) => {
         this.starsMaterial.uniforms.uTime.value = time;
+        this.stars.rotation.set(time * 0.02, time * 0.01, time * 0.03);
     }
 }
 

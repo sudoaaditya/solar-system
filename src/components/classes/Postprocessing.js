@@ -39,11 +39,10 @@ class Postprocessing {
         this.params = {
             threshold: 0,
             strength: 1.5,
-            radius: 1,
-            exposure: 1
+            radius: 1
         };
 
-        const bloomFolder = this.gui.addFolder("Bloom Settings")
+        /* const bloomFolder = this.gui.addFolder("Bloom Settings")
 
         bloomFolder.add(this.params, "threshold", 0.0, 1.0, 0.1).onChange((value) => {
             this.bloomPass.threshold = Number(value);
@@ -55,13 +54,7 @@ class Postprocessing {
 
         bloomFolder.add(this.params, "radius", 0.0, 3.0, 0.01).onChange((value) => {
             this.bloomPass.radius = Number(value);
-        })
-
-        const toneMappingFolder = this.gui.addFolder('tone mapping');
-
-        toneMappingFolder.add(this.params, 'exposure', 0.1, 2).onChange((value) => {
-            this.renderer.toneMappingExposure = Math.pow(value, 4.0);
-        });
+        }) */
     }
 
     initialize = () => {

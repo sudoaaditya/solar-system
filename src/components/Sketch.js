@@ -125,7 +125,6 @@ class Sketch {
     getSunColor = (bNess) => {
         bNess *= 0.25;
 
-        console.log(bNess)
         const colorVector = (new THREE.Vector3(bNess, bNess * bNess, bNess * bNess * bNess));
         colorVector.divideScalar(0.25)
         colorVector.multiplyScalar(0.8)

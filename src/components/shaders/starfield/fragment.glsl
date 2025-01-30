@@ -12,7 +12,7 @@ void main() {
     color *= textureColor;
 
     float time = uTime * vRandom;
-    float twinkle = 0.5 + 0.5 * sin(time  * 10.0);
+    float twinkle = 0.5 + 0.5 * sin(time  * 5.0);
     color.a *= twinkle;
 
     gl_FragColor = color;
