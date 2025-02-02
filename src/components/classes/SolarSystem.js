@@ -13,17 +13,18 @@ class SolarSystem {
         this.orbits = [];
 
         this.createPlanets();
-        this.createOrbits();
+        // this.createOrbits();
     }
 
     createPlanets = () => {
+        let i = 0;
         for (let key in PlanetInfo) {
             const planet = PlanetInfo[key];
 
-            const planetClass = new Planet(planet)
+            const planetClass = new Planet({...planet, idx: i++});
             
             this.planets.push(planet);
-            this.scene.add(planetClass.mesh);
+            // this.scene.add(planetClass.mesh);
         }
     }
 

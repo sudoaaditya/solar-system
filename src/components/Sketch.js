@@ -5,6 +5,7 @@ import { OrbitControls } from 'three/examples/jsm/Addons.js';
 // components
 import StarField from './effects/StarField';
 import { Postprocessing } from './classes/Postprocessing';
+import { SolarSystem } from './classes/SolarSystem';
 class Sketch {
 
     constructor(container) {
@@ -116,7 +117,7 @@ class Sketch {
     }
 
     addLights = () => {
-        this.scene.add(new THREE.AmbientLight(0xcccccc));
+        this.scene.add(new THREE.AmbientLight(0xcccccc, 1));
 
         const pointLight = new THREE.PointLight(0xffffff, 100);
         this.camera.add(pointLight);
@@ -152,6 +153,9 @@ class Sketch {
         sphere.userData["isObject"] = true;
         sphere.layers.enable(this.layers.BLOOM);
         this.scene.add(sphere);
+
+        // solar system init
+        this.solarSystem = new SolarSystem({scene: this.scene})
     }
 
     setupComposer = () => {

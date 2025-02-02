@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { TextureLoader } from "three";
 
 
@@ -11,7 +12,7 @@ class Planet {
         this.texImg = props.texture;
 
         this.texLoader = new TextureLoader();
-
+        this.idx = props.idx;
 
         this.createShape();
     }
@@ -26,6 +27,11 @@ class Planet {
         });
 
         this.mesh = new THREE.Mesh(this.geometry, this.material);
+
+        // place them according to idx and diameter of last planet
+        this.mesh.position.x = this.idx * 2 + 1;
+
+
         this.mesh.userData["isObject"] = true;
     }
 
