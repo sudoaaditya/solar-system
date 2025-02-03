@@ -84,7 +84,7 @@ class Sketch {
             10000
         );
 
-        this.camera.position.set(0, 0, 4);
+        this.camera.position.set(0, 0, 40);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     }
@@ -117,7 +117,7 @@ class Sketch {
     }
 
     addLights = () => {
-        this.scene.add(new THREE.AmbientLight(0xcccccc, 1));
+        this.scene.add(new THREE.AmbientLight(0xffffff, 2));
 
         const pointLight = new THREE.PointLight(0xffffff, 100);
         this.camera.add(pointLight);
@@ -143,7 +143,7 @@ class Sketch {
         });
         this.scene.add(this.starField.stars);
 
-        const geo = new THREE.SphereGeometry(1, 32, 32);
+        /* const geo = new THREE.SphereGeometry(1, 32, 32);
         const color = this.getSunColor(3);
         const material = new THREE.MeshStandardMaterial({
             color,
@@ -152,10 +152,10 @@ class Sketch {
         const sphere = new THREE.Mesh(geo, material);
         sphere.userData["isObject"] = true;
         sphere.layers.enable(this.layers.BLOOM);
-        this.scene.add(sphere);
+        this.scene.add(sphere); */
 
         // solar system init
-        this.solarSystem = new SolarSystem({scene: this.scene})
+        this.solarSystem = new SolarSystem({scene: this.scene, layers: this.layers})
     }
 
     setupComposer = () => {
@@ -173,6 +173,7 @@ class Sketch {
 
         this.controls.update();
         this.starField.update(this.elpasedTime);
+        this.solarSystem.update(this.elpasedTime);
 
         this.render();
 
