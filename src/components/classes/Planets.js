@@ -46,7 +46,7 @@ class Planet {
         if(this.isBloomLayer) {
             this.mesh.layers.enable(this.layers.BLOOM);
         } else {
-            this.mesh.scale.set(2, 2, 2);
+            this.mesh.scale.set(1.5, 1.5, 1.5);
         }
 
         if(this.distance) {
